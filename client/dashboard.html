@@ -34,7 +34,7 @@
 
         <div class="d-flex align-items-center gap-3">
 
-            <div class="d-flex align-items-center gap-2 user-info">
+            <div class=" d-none d-sm-flex align-items-center gap-2 user-info">
 
                 <div class="user-avatar" id="userAvatar">
                     S
@@ -55,20 +55,20 @@
     </header>
 
     <!-- Task Form -->
-    <section class="container mt-4">
+    <section class="container mt-4 px-3">
 
-        <div class="row g-2 align-items-center">
+        <div class="row g-3 g-lg-2 align-items-center">
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-sm-6 col-lg-3">
                 <input id="taskInput" class="form-control" placeholder="Task title">
             </div>
 
-            <div class="col-md-6 col-lg-3">
+            <div class="col-sm-6 col-lg-3">
                 <input id="descInput" class="form-control" placeholder="Description">
             </div>
 
             
-            <div class="col-md-6 col-lg-2">
+            <div class="col-sm-6 col-lg-2">
 
                 <select
                     id="prioritySelect"
@@ -91,11 +91,11 @@
 
             </div>
 
-            <div class="col-md-6 col-lg-2">
+            <div class="col-sm-6 col-lg-2">
                 <input id="dueDate" type="date" class="form-control" style="color: #878EA3;">
             </div>
 
-            <div class="col-md-2">
+            <div class="col ">
                 <button onclick="createTask()" class="btn btn-primary w-100">
                     Add
                 </button>

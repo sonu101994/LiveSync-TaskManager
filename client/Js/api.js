@@ -23,3 +23,20 @@ const apiRequest=async(url, method = "GET", body)=> {
   const text = await res.text();
   return text ? JSON.parse(text) : {};
 }
+// ================= SHOW TOAST =================
+function showToast(msg) {
+
+    // Get toast element
+    const toast = document.getElementById("toast");
+
+    // Set message
+    toast.innerText = msg;
+
+    // Show toast
+    toast.classList.add("toast-show");
+
+    // Hide after 2 sec
+    setTimeout(() => {
+        toast.classList.remove("toast-show");
+    }, 2000);
+}
