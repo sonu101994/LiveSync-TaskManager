@@ -1,5 +1,5 @@
 // Base API URL
-const API = "http://localhost:5000/api";
+const API = "https://livesync-taskmanager.onrender.com/api";
 
 
 //  API request handler

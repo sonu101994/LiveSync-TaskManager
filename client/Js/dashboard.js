@@ -1,5 +1,5 @@
 // ================= SOCKET =================
-const socket = io("http://localhost:5000");
+const socket = io("https://livesync-taskmanager.onrender.com/");
 
 // ================= USER DATA =================
 const userId = sessionStorage.getItem("userId");
