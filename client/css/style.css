@@ -59,12 +59,13 @@ body {
   border-bottom: 1px solid #1e293b;
   background: rgba(15,23,42,0.7);
   backdrop-filter: blur(10px);
+  z-index: 9999;
 }
 
 /* Toast */
 .toast-box {
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   background: #6366f1;
   color: white;
