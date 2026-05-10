@@ -1,0 +1,20 @@
+/* Base */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Auth Page Background */
+.auth-body {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+/* Auth Card */
+.auth-card {
+  width: 350px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  color: white;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
