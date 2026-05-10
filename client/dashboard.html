@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Meta -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Title -->
+    <title>LiveSync Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Navbar -->
+    <header class="navbar-custom d-flex justify-content-between align-items-center px-4 py-3">
+
+        <h4 class="logo">
+            <span class="logo-icon">
+                <i class="bi bi-kanban"></i>
+            </span>
+            LiveSync
+        </h4>
+
+        <div class="d-flex align-items-center gap-3">
+
+            <div class="d-flex align-items-center gap-2 user-info">
+
+                <div class="user-avatar" id="userAvatar">
+                    S
+                </div>
+
+                <div id="userName" class="user-name">
+                    User
+                </div>
+
+            </div>
+
+            <button onclick="logout()" class="btn btn-outline-light btn-sm">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+    <!-- Task Form -->
+    <section class="container mt-4">
+
+        <div class="row g-2 align-items-center">
+
+            <div class="col-md-6 col-lg-3">
+                <input id="taskInput" class="form-control" placeholder="Task title">
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <input id="descInput" class="form-control" placeholder="Description">
+            </div>
+
+            
+            <div class="col-md-6 col-lg-2">
+
+                <select
+                    id="prioritySelect"
+                    class="form-select priority-select"
+                    onchange="selectPriority(this.value)"
+                    style="color: #878EA3;"
+                >
+                    <option value="low">
+                        Priority: Low
+                    </option>
+
+                    <option value="medium" selected>
+                        Priority: Medium
+                    </option>
+
+                    <option value="high">
+                        Priority: High
+                    </option>
+                </select>
+
+            </div>
+
+            <div class="col-md-6 col-lg-2">
+                <input id="dueDate" type="date" class="form-control" style="color: #878EA3;">
+            </div>
+
+            <div class="col-md-2">
+                <button onclick="createTask()" class="btn btn-primary w-100">
+                    Add
+                </button>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- Board -->
+    <section class="container-fluid my-4">
+
+        <div class="row g-3 px-3">
+
+            <div class="col-lg-3 col-md-6">
+                <div class="kanban-column">
+                    <h6 class="column-title">Backlog</h6>
+                    <div id="backlog"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="kanban-column">
+                    <h6 class="column-title">To Do</h6>
+                    <div id="todo"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="kanban-column">
+                    <h6 class="column-title">In Progress</h6>
+                    <div id="inprogress"></div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="kanban-column">
+                    <h6 class="column-title">Completed</h6>
+                    <div id="completed"></div>
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- Toast -->
+    <div id="toast" class="toast-box"></div>
+
+    <!-- Scripts -->
+    <script src="./Js/api.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="./Js/dashboard.js"></script>
+
+</body>
+</html>
