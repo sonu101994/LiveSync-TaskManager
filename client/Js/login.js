@@ -24,7 +24,7 @@ const login=async()=> {
             sessionStorage.setItem("role", data.user.role);
             sessionStorage.setItem("username", data.user.username);
             // Redirect to dashboard
-            window.location.href = "dashboard.html";
+            window.location.href = "../dashboard.html";
 
         } else {
 
@@ -80,7 +80,7 @@ const login=async()=> {
             document.getElementById("confirmPassword").value = "";
 
             setTimeout(() => {
-                window.location.href="index.html";
+                window.location.href="../index.html";
             }, 1000);
 
         } else {

@@ -1,6 +1,6 @@
 // Base API URL
-const API = "livesync-taskmanager-live-sync.up.railway.app/api";
-const SOCKET_URL = "livesync-taskmanager-live-sync.up.railway.app";
+const API = "https://livesync-taskmanager-live-sync.up.railway.app/api";
+const SOCKET_URL = "https://livesync-taskmanager-live-sync.up.railway.app";
 
 
 //  API request handler
