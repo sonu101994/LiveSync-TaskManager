@@ -1,5 +1,6 @@
 // Base API URL
-const API = "https://livesync-taskmanager.onrender.com/api";
+const API = "/api";
+const SOCKET_URL = window.location.origin;
 
 
 //  API request handler
@@ -8,26 +9,48 @@ const apiRequest=async(url, method = "GET", body)=> {
 // getting token from session storage
    const token = sessionStorage.getItem("token");
 
+  const headers = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers.Authorization = "Bearer " + token;
+  }
+
   // Send request to backend
   const res = await fetch(API + url, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
+    headers,
     body: body ? JSON.stringify(body) : null,
     cache: "no-store",
   });
 
   // parsing response to extract data with in response
   const text = await res.text();
-  return text ? JSON.parse(text) : {};
+  let data = {};
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch (error) {
+      data = { message: text };
+    }
+  }
+
+  // handle failed api response
+  if (!res.ok) {
+    throw new Error(data.message || `request failed with status ${res.status}`);
+  }
+
+  return data;
 }
 // ================= SHOW TOAST =================
 function showToast(msg) {
 
     // Get toast element
     const toast = document.getElementById("toast");
+
+    if (!toast) return;
 
     // Set message
     toast.innerText = msg;

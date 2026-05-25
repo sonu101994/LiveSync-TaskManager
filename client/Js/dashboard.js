@@ -1,5 +1,5 @@
 // ================= SOCKET =================
-const socket = io("https://livesync-taskmanager.onrender.com/");
+const socket = io(SOCKET_URL);
 
 // ================= USER DATA =================
 const userId = sessionStorage.getItem("userId");
@@ -13,9 +13,13 @@ if (!userId) {
 
 // ================= STATE =================
 let selectedPriority = "medium";
+let confirmAction = null;
+let editingTaskId = null;
+let addingUserTaskId = null;
 
 // ================= INIT =================
 setUserAvatar();
+setupModalActions();
 loadTasks();
 
 // ================= REALTIME =================
@@ -30,11 +34,19 @@ socket.on("tasksUpdated", () => {
 
 // ================= AUTH =================
 function logout() {
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("userId");
-  sessionStorage.removeItem("role");
+  openConfirmModal(
+    "logout",
+    "are you sure you want to logout?",
+    "Logout",
+    () => {
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("userId");
+      sessionStorage.removeItem("role");
+      sessionStorage.removeItem("username");
 
-  window.location.href = "index.html";
+      window.location.href = "index.html";
+    }
+  );
 }
 
 // ================= PRIORITY =================
@@ -54,33 +66,36 @@ async function loadTasks() {
     document.getElementById("inprogress").innerHTML = "";
     document.getElementById("completed").innerHTML = "";
 
-    if (!tasks || tasks.length === 0) return;
+    if (tasks && tasks.length > 0) {
+      tasks.map((task) => {
 
-    tasks.map((task) => {
+        let columnId;
 
-      let columnId;
+        if (task.status === "backlog") {
+          columnId = "backlog";
+        }
+        else if (task.status === "pending") {
+          columnId = "todo";
+        }
+        else if (task.status === "in-progress") {
+          columnId = "inprogress";
+        }
+        else {
+          columnId = "completed";
+        }
 
-      if (task.status === "backlog") {
-        columnId = "backlog";
-      }
-      else if (task.status === "pending") {
-        columnId = "todo";
-      }
-      else if (task.status === "in-progress") {
-        columnId = "inprogress";
-      }
-      else {
-        columnId = "completed";
-      }
+        document
+          .getElementById(columnId)
+          .appendChild(createTaskCard(task));
 
-      document
-        .getElementById(columnId)
-        .appendChild(createTaskCard(task));
+      });
+    }
 
-    });
+    showEmptyColumns();
 
   } catch (error) {
 
+    showToast(error.message || "Failed to load tasks ❌");
     console.log(error);
 
   }
@@ -118,7 +133,7 @@ async function createTask() {
 
   } catch (error) {
 
-    showToast("Task creation failed ❌");
+    showToast(error.message || "Task creation failed ❌");
     console.log(error);
 
   }
@@ -135,6 +150,7 @@ function createTaskCard(task) {
   const isOwner =
     String(task.createdBy?._id || task.createdBy) === String(userId);
 
+  const isAdmin = role === "admin";
   const nextStatus = getNextStatus(task.status);
 
   const nextTextMap = {
@@ -167,8 +183,14 @@ function createTaskCard(task) {
 
     creator.className = "user-badge creator-badge";
 
-    creator.innerHTML =
-      `<i class="bi bi-award-fill"></i> ${task.createdBy.username || "Creator"}`;
+    const creatorIcon = document.createElement("i");
+    creatorIcon.className = "bi bi-award-fill";
+
+    const creatorName = document.createElement("span");
+    creatorName.textContent = task.createdBy.username || "Creator";
+
+    creator.appendChild(creatorIcon);
+    creator.appendChild(creatorName);
 
     usersContainer.appendChild(creator);
   }
@@ -191,7 +213,7 @@ function createTaskCard(task) {
       userBadge.appendChild(name);
 
       // Remove user
-      if (isOwner || role === "admin") {
+      if (isOwner || isAdmin) {
 
         const removeIcon = document.createElement("i");
 
@@ -233,9 +255,16 @@ function createTaskCard(task) {
 
   footer1.appendChild(priority);
 
+  if (task.dueDate) {
+    const dueDate = document.createElement("span");
+    dueDate.className = "due-date";
+    dueDate.textContent = new Date(task.dueDate).toLocaleDateString();
+    footer1.appendChild(dueDate);
+  }
+
   // ACTIONS
   const footer2 = document.createElement("div");
-  footer2.className = "task-footer";
+  footer2.className = "task-footer task-actions";
 
   // Move
   const moveBtn = document.createElement("button");
@@ -250,7 +279,7 @@ function createTaskCard(task) {
   footer2.appendChild(moveBtn);
 
   // Owner/Admin actions
-  if (isOwner || role === "admin") {
+  if (isOwner || isAdmin) {
 
     // Edit
     const editBtn = document.createElement("button");
@@ -324,7 +353,7 @@ async function moveTask(id, currentStatus) {
 
   } catch (error) {
 
-    showToast("Task move failed ❌");
+    showToast(error.message || "Task move failed ❌");
     console.log(error);
 
   }
@@ -333,123 +362,87 @@ async function moveTask(id, currentStatus) {
 // ================= DELETE TASK =================
 async function deleteTask(id) {
 
-  const confirmDelete = confirm("Delete?");
+  openConfirmModal(
+    "delete task",
+    "are you sure you want to delete this task?",
+    "Delete",
+    async () => {
+      try {
 
-  if (!confirmDelete) return;
+        await apiRequest(`/tasks/${id}`, "DELETE");
 
-  try {
+        showToast("Task deleted ✅");
 
-    await apiRequest(`/tasks/${id}`, "DELETE");
+      } catch (error) {
 
-    showToast("Task deleted ✅");
+        showToast(error.message || "Task delete failed ❌");
+        console.log(error);
 
-  } catch (error) {
-
-    showToast("Task delete failed ❌");
-    console.log(error);
-
-  }
+      }
+    }
+  );
 }
 
 // ================= ADD USER =================
 async function addUser(taskId) {
 
-  const email = prompt("Enter user email");
+  addingUserTaskId = taskId;
 
-  if (!email) return;
+  const emailInput = document.getElementById("addUserEmail");
+  emailInput.value = "";
 
-  try {
+  const modal = bootstrap.Modal.getOrCreateInstance(
+    document.getElementById("addUserModal")
+  );
 
-    const res = await apiRequest(
-      `/tasks/${taskId}/add-user`,
-      "PUT",
-      { email }
-    );
+  modal.show();
 
-    if (res.message === "Already added") {
-      showToast("User already added ⚠️");
-      return;
-    }
-
-    showToast("User added ✅");
-
-  } catch (error) {
-
-    if (error.message.includes("404")) {
-      showToast("User does not exist ❌");
-    }
-    else if (error.message.includes("400")) {
-      showToast("User already added ⚠️");
-    }
-    else {
-      showToast("Failed to add user ❌");
-    }
-
-    console.log(error);
-
-  }
+  setTimeout(() => emailInput.focus(), 250);
 }
 
 // ================= EDIT TASK =================
 async function editTask(id, oldTitle, oldDesc) {
 
-  const title = prompt("Edit title", oldTitle);
+  editingTaskId = id;
 
-  if (!title) return;
+  document.getElementById("editTaskTitle").value = oldTitle || "";
+  document.getElementById("editTaskDescription").value = oldDesc || "";
 
-  const description = prompt(
-    "Edit description",
-    oldDesc || ""
+  const modal = bootstrap.Modal.getOrCreateInstance(
+    document.getElementById("editTaskModal")
   );
 
-  try {
-
-    await apiRequest(`/tasks/${id}`, "PUT", {
-      title,
-      description,
-    });
-
-    showToast("Task edited ✅");
-
-  } catch (error) {
-
-    showToast("Task edit failed ❌");
-    console.log(error);
-
-  }
+  modal.show();
 }
 
 // ================= REMOVE USER =================
 async function removeUser(taskId, userIdToRemove) {
 
-  const confirmRemove = confirm("Remove user?");
+  openConfirmModal(
+    "remove user",
+    "are you sure you want to remove this user from the task?",
+    "Remove",
+    async () => {
+      try {
 
-  if (!confirmRemove) return;
+        await apiRequest(
+          `/tasks/${taskId}/remove-user`,
+          "PUT",
+          {
+            userId: userIdToRemove,
+          }
+        );
 
-  try {
+        showToast("User removed ✅");
 
-    await apiRequest(
-      `/tasks/${taskId}/remove-user`,
-      "PUT",
-      {
-        userId: userIdToRemove,
+      } catch (error) {
+
+        showToast(error.message || "Failed to remove user ❌");
+        console.log(error);
+
       }
-    );
-
-    showToast("User removed ✅");
-
-  } catch (error) {
-
-    if (error.message.includes("400")) {
-      showToast("User not assigned ❌");
     }
-    else {
-      showToast("Failed to remove user ❌");
-    }
-
-    console.log(error);
-
-  }
+  );
 }
 
 // ================= USER AVATAR =================
@@ -470,5 +463,133 @@ function setUserAvatar() {
   nameBox.innerText = name;
 
   avatar.innerText = name[0].toUpperCase();
+}
+
+// modal helpers
+function setupModalActions() {
+
+  const confirmBtn = document.getElementById("confirmActionBtn");
+  const saveEditBtn = document.getElementById("saveEditTaskBtn");
+  const saveAddUserBtn = document.getElementById("saveAddUserBtn");
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", async () => {
+      const action = confirmAction;
+      confirmAction = null;
+
+      bootstrap.Modal.getOrCreateInstance(
+        document.getElementById("confirmModal")
+      ).hide();
+
+      if (action) {
+        await action();
+      }
+    });
+  }
+
+  if (saveEditBtn) {
+    saveEditBtn.addEventListener("click", saveEditedTask);
+  }
+
+  if (saveAddUserBtn) {
+    saveAddUserBtn.addEventListener("click", saveAssignedUser);
+  }
+}
+
+function openConfirmModal(title, message, buttonText, action) {
+
+  confirmAction = action;
+
+  document.getElementById("confirmModalTitle").textContent = title;
+  document.getElementById("confirmModalMessage").textContent = message;
+  document.getElementById("confirmActionBtn").textContent = buttonText;
+
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById("confirmModal")
+  ).show();
+}
+
+async function saveEditedTask() {
+
+  if (!editingTaskId) return;
+
+  const title = document.getElementById("editTaskTitle").value.trim();
+  const description = document.getElementById("editTaskDescription").value.trim();
+
+  if (!title) {
+    showToast("Title required ❌");
+    return;
+  }
+
+  try {
+
+    await apiRequest(`/tasks/${editingTaskId}`, "PUT", {
+      title,
+      description,
+    });
+
+    bootstrap.Modal.getOrCreateInstance(
+      document.getElementById("editTaskModal")
+    ).hide();
+
+    editingTaskId = null;
+    showToast("Task edited ✅");
+
+  } catch (error) {
+
+    showToast(error.message || "Task edit failed ❌");
+    console.log(error);
+
+  }
+}
+
+async function saveAssignedUser() {
+
+  if (!addingUserTaskId) return;
+
+  const email = document.getElementById("addUserEmail").value.trim();
+
+  if (!email) {
+    showToast("Email required ❌");
+    return;
+  }
+
+  try {
+
+    await apiRequest(
+      `/tasks/${addingUserTaskId}/add-user`,
+      "PUT",
+      { email }
+    );
+
+    bootstrap.Modal.getOrCreateInstance(
+      document.getElementById("addUserModal")
+    ).hide();
+
+    addingUserTaskId = null;
+    showToast("User added ✅");
+
+  } catch (error) {
+
+    showToast(error.message || "Failed to add user ❌");
+    console.log(error);
+
+  }
+}
+
+function showEmptyColumns() {
+
+  const columns = ["backlog", "todo", "inprogress", "completed"];
+
+  columns.forEach((id) => {
+    const column = document.getElementById(id);
+
+    if (!column.querySelector(".task-card")) {
+      const empty = document.createElement("div");
+      empty.className = "empty-column";
+      empty.textContent = "no tasks found";
+      column.appendChild(empty);
+    }
+  });
 }
 

@@ -1,11 +1,15 @@
 const taskModel = require("../models/taskModel");
 const userModel = require("../models/userModel");
 
+const allowedStatuses = ["backlog", "pending", "in-progress", "completed"];
+const allowedPriorities = ["low", "medium", "high"];
+
 // ================= CREATE TASK =================
 const createTask = async (req, res) => {
     try {
 
-        const { title, description, priority, dueDate } = req.body;
+        const { description, priority, dueDate } = req.body;
+        const title = req.body.title?.trim();
 
         if (!title) {
             return res.status(400).json({
@@ -13,11 +17,17 @@ const createTask = async (req, res) => {
             });
         }
 
+        if (priority && !allowedPriorities.includes(priority)) {
+            return res.status(400).json({
+                message: "invalid priority"
+            });
+        }
+
         const task = await taskModel.create({
             title,
             description,
-            priority,
-            dueDate,
+            priority: priority || "medium",
+            dueDate: dueDate || undefined,
             createdBy: req.user._id,
             users: []
         });
@@ -48,7 +58,8 @@ const getTasks = async (req, res) => {
             tasks = await taskModel
                 .find()
                 .populate("createdBy", "username email")
-                .populate("users", "username email");
+                .populate("users", "username email")
+                .sort({ createdAt: -1 });
 
         } else {
 
@@ -60,7 +71,8 @@ const getTasks = async (req, res) => {
                     ]
                 })
                 .populate("createdBy", "username email")
-                .populate("users", "username email");
+                .populate("users", "username email")
+                .sort({ createdAt: -1 });
 
         }
 
@@ -92,11 +104,11 @@ const updateTask = async (req, res) => {
             (u) => String(u) === String(req.user._id)
         );
 
-        if (
-            req.user.role !== "admin" &&
-            String(task.createdBy) !== String(req.user._id) &&
-            !isAssigned
-        ) {
+        const canManageTask =
+            req.user.role === "admin" ||
+            String(task.createdBy) === String(req.user._id);
+
+        if (!canManageTask && !isAssigned) {
 
             return res.status(403).json({
                 message: "Not allowed"
@@ -104,11 +116,58 @@ const updateTask = async (req, res) => {
 
         }
 
-        task.title = req.body.title || task.title;
-        task.description = req.body.description || task.description;
-        task.status = req.body.status || task.status;
-        task.priority = req.body.priority || task.priority;
-        task.dueDate = req.body.dueDate || task.dueDate;
+        // assigned users can only update task status
+        if (!canManageTask) {
+            const fields = Object.keys(req.body);
+            const onlyStatusUpdate =
+                fields.length === 1 && fields[0] === "status";
+
+            if (!onlyStatusUpdate) {
+                return res.status(403).json({
+                    message: "Assigned users can only move task status"
+                });
+            }
+        }
+
+        if (req.body.status && !allowedStatuses.includes(req.body.status)) {
+            return res.status(400).json({
+                message: "invalid status"
+            });
+        }
+
+        if (req.body.priority && !allowedPriorities.includes(req.body.priority)) {
+            return res.status(400).json({
+                message: "invalid priority"
+            });
+        }
+
+        if (Object.prototype.hasOwnProperty.call(req.body, "title")) {
+            const title = req.body.title?.trim();
+
+            if (!title) {
+                return res.status(400).json({
+                    message: "title is required"
+                });
+            }
+
+            task.title = title;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(req.body, "description")) {
+            task.description = req.body.description || "";
+        }
+
+        if (Object.prototype.hasOwnProperty.call(req.body, "status")) {
+            task.status = req.body.status;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(req.body, "priority")) {
+            task.priority = req.body.priority;
+        }
+
+        if (Object.prototype.hasOwnProperty.call(req.body, "dueDate")) {
+            task.dueDate = req.body.dueDate || undefined;
+        }
 
         const updatedTask = await task.save();
 
@@ -175,7 +234,13 @@ const addUser = async (req, res) => {
 
     try {
 
-        const { email } = req.body;
+        const email = req.body.email?.trim().toLowerCase();
+
+        if (!email) {
+            return res.status(400).json({
+                message: "email is required"
+            });
+        }
 
         const task = await taskModel.findById(req.params.id);
 
@@ -247,6 +312,12 @@ const removeUser = async (req, res) => {
     try {
 
         const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({
+                message: "user id is required"
+            });
+        }
 
         const task = await taskModel.findById(req.params.id);
 

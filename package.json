@@ -4,10 +4,11 @@
   "description": "LiveSync Dashboard – A real-time productivity and collaboration dashboard built with Vanilla JS, Bootstrap, Node.js, Express, MongoDB, and Socket.IO.",
   "main": "server/server.js",
   "type": "commonjs",
-  "scripts": {
-    "dev": "nodemon server/server.js",
-    "start": "node server/server.js"
-  },
+"scripts": {
+  "dev": "nodemon server/server.js",
+  "start": "node server/server.js",
+  "seed:admin": "node server/scripts/seedAdmin.js"
+},
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

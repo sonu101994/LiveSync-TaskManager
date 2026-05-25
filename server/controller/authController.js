@@ -7,12 +7,20 @@ const bcrypt = require("bcryptjs");
 // ================= REGISTER =================
 const registerUser = async (req, res) => {
     try {
-        const { username, email, password } = req.body;
+        const username = req.body.username?.trim();
+        const email = req.body.email?.trim().toLowerCase();
+        const password = req.body.password;
 
         // Validate input
         if (!username || !email || !password) {
             return res.status(400).json({
                 message: "All fields required"
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                message: "Password must be at least 6 characters"
             });
         }
 
@@ -47,7 +55,8 @@ const registerUser = async (req, res) => {
             token,
             user: {
                 _id: user._id,
-                role: user.role
+                role: user.role,
+                username: user.username
             }
         });
 
@@ -62,7 +71,8 @@ const registerUser = async (req, res) => {
 // ================= LOGIN =================
 const loginUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const email = req.body.email?.trim().toLowerCase();
+        const password = req.body.password;
 
         // Validate input
         if (!email || !password) {

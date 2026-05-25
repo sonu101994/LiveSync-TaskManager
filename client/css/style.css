@@ -341,3 +341,110 @@ body {
   color: #e2e8f0;
   font-weight: 500;
 }
+/* modal styling */
+.livesync-modal {
+  background: #111827;
+  color: #e2e8f0;
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+}
+
+.livesync-modal .modal-header,
+.livesync-modal .modal-footer {
+  border-color: #1f2937;
+}
+
+.modal-textarea {
+  min-height: 110px;
+  border-radius: 14px !important;
+  resize: vertical;
+}
+
+/* small ui fixes */
+.dashboard-body {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.container-fluid {
+  max-width: 1600px;
+}
+
+.task-card {
+  word-break: break-word;
+}
+
+.task-actions {
+  flex-wrap: wrap;
+}
+
+.due-date {
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.empty-column {
+  border: 1px dashed #334155;
+  color: #64748b;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+/* large screen layout fixes */
+@media (min-width: 1200px) {
+  .kanban-column {
+    min-height: calc(100vh - 230px);
+    max-height: calc(100vh - 230px);
+    overflow-y: auto;
+  }
+}
+
+/* tablet layout fixes */
+@media (max-width: 992px) {
+  .kanban-column {
+    min-height: 360px;
+  }
+}
+
+/* mobile layout fixes */
+@media (max-width: 768px) {
+  .navbar-custom {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .logo {
+    font-size: 1rem;
+  }
+
+  .auth-card {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .task-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .move-btn-text {
+    width: 100%;
+  }
+}
+
+/* small mobile fixes */
+@media (max-width: 420px) {
+  .toast-box {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    text-align: center;
+  }
+
+  .task-card:hover {
+    transform: none;
+  }
+}

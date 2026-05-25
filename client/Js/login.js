@@ -3,31 +3,37 @@
 const login=async()=> {
 
     // Get input values
-    const email = document.getElementById("email").value;
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
 
-    // Send login request using apiRequest()
-    const data = await apiRequest(
-        "/auth/login",
-        "POST",
-        { email, password }
-    );
+    try {
 
-    // Check login success
-    if (data.token) {
+        // Send login request using apiRequest()
+        const data = await apiRequest(
+            "/auth/login",
+            "POST",
+            { email, password }
+        );
 
-        // Store user data in session
-        sessionStorage.setItem("token", data.token);
-        sessionStorage.setItem("userId", data.user._id);
-        sessionStorage.setItem("role", data.user.role);
-        sessionStorage.setItem("username", data.user.username);
-        // Redirect to dashboard
-        window.location.href = "dashboard.html";
+        // Check login success
+        if (data.token) {
 
-    } else {
+            // Store user data in session
+            sessionStorage.setItem("token", data.token);
+            sessionStorage.setItem("userId", data.user._id);
+            sessionStorage.setItem("role", data.user.role);
+            sessionStorage.setItem("username", data.user.username);
+            // Redirect to dashboard
+            window.location.href = "dashboard.html";
 
-        // Show error
-        showToast(data.message || "Login failed ❌");
+        } else {
+
+            // Show error
+            showToast(data.message || "Login failed ❌");
+        }
+
+    } catch (error) {
+        showToast(error.message || "Login failed ❌");
     }
 }
 
@@ -35,8 +41,8 @@ const login=async()=> {
  const register=async()=> {
 
     // Get form values
-    const username = document.getElementById("username").value;
-    const email = document.getElementById("email").value;
+    const username = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
 
@@ -52,34 +58,39 @@ const login=async()=> {
         return;
     }
 
-    // Send register request using apiRequest()
-    const data = await apiRequest(
-        "/auth/register",
-        "POST",
-        { username, email, password }
-    );
+    try {
 
-    console.log(data)
-    // Success check
-    if (data.message === "User registered successfully") {
+        // Send register request using apiRequest()
+        const data = await apiRequest(
+            "/auth/register",
+            "POST",
+            { username, email, password }
+        );
 
-        showToast("Registered successfully ✅");
-        
+        // Success check
+        if (data.message === "User registered successfully") {
 
-        // Clear form fields
-        document.getElementById("username").value = "";
-        document.getElementById("email").value = "";
-        document.getElementById("password").value = "";
-        document.getElementById("confirmPassword").value = "";
+            showToast("Registered successfully ✅");
+            
 
-        setTimeout(() => {
-            window.location.href="index.html";
-        }, 1000);
+            // Clear form fields
+            document.getElementById("username").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("password").value = "";
+            document.getElementById("confirmPassword").value = "";
 
-    } else {
+            setTimeout(() => {
+                window.location.href="index.html";
+            }, 1000);
 
-        // Error message
-        showToast(data.message || "Error ❌");
+        } else {
+
+            // Error message
+            showToast(data.message || "Error ❌");
+        }
+
+    } catch (error) {
+        showToast(error.message || "Registration failed ❌");
     }
 }
 
