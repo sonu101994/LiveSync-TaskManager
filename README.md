@@ -105,7 +105,7 @@ LiveSync is a simple and modern task management App  built using **Node.js, Expr
  - [https://github.com/sonu101994/LiveSync-TaskManager]
 
 ## Live Link
- - https://live-sync-task-manager.vercel.app/
+ - https://live-sync-task-manager.vercel.app
 
 ## 👨‍💻 Author
 
