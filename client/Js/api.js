@@ -1,6 +1,6 @@
 // Base API URL
-const API = "https://livesync-taskmanager-app.onrender.com/api";
-const SOCKET_URL = "https://livesync-taskmanager-app.onrender.com";
+const API = "https://live-sync-task-manager-8fx3.vercel.app/api";
+const SOCKET_URL = "https://live-sync-task-manager-8fx3.vercel.app";
 
 
 //  API request handler
